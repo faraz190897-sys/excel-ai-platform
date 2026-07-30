@@ -19,6 +19,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def serve_frontend():
+    return FileResponse("index.html")
+    
 class PromptRequest(BaseModel):
     prompt: str
 
