@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SheetAI Pro — Excel Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+    <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-bold tracking-wider text-sm">📊 XL</div>
+            <span class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">SheetAI Pro</span>
+        </div>
+        <div class="text-sm text-slate-400 font-medium">Independent Suite v1.0</div>
+    </nav>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
+        <section class="md:col-span-2 bg-slate-800/40 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-200 mb-2">Generate Spreadsheet Asset</h2>
+                <p class="text-sm text-slate-400 mb-6">Describe your data, accounting tracking, or project parameters in natural language.</p>
+                <textarea id="promptInput" class="w-full h-48 bg-slate-950/60 border border-slate-700/60 rounded-xl p-4 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition resize-none text-sm" placeholder="e.g., Build a quarterly sales tracker for an online tech store with columns for item, units sold, revenue, and profit."></textarea>
+            </div>
+            <div class="mt-6">
+                <button id="generateBtn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold py-3.5 px-4 rounded-xl shadow-lg hover:brightness-110 active:scale-[0.99] transition duration-150">Generate Asset</button>
+            </div>
+        </section>
+
+        <section class="space-y-6">
+            <div id="statusCard" class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-6 text-center">
+                <div id="loaderAnimation" class="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-emerald-400 rounded-full mb-3"></div>
+                <p id="statusText" class="text-sm font-medium text-slate-300">Processing input...</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const promptInput = document.getElementById('promptInput');
+        const statusCard = document.getElementById('statusCard');
+        const statusText = document.getElementById('statusText');
+
+        generateBtn.addEventListener('click', async () => {
+            const prompt = promptInput.value.trim();
+            if(!prompt) return alert('Please enter a description.');
+
+            statusCard.classList.remove('hidden');
+            generateBtn.disabled = true;
+            statusText.innerText = "Designing spreadsheet layout...";
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                if (!response.ok) throw new Error('Generation failed.');
+
+                statusText.innerText = "Downloading `.xlsx` file...";
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = "AI_Generated_Report.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                statusText.innerText = "🎉 Download complete!";
+            } catch (err) {
+                statusText.innerText = "❌ Pipeline error encountered.";
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
+
+
